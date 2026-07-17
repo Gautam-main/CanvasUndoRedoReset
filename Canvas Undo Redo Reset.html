@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dot Canvas</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: #1c1b1a;
+    font-family: system-ui, sans-serif;
+  }
+  .toolbar { display: flex; gap: 8px; }
+  button {
+    background: #26241f;
+    border: 1px solid #3a3730;
+    color: #f2ede3;
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button:hover:not(:disabled) { background: #33312a; }
+  button:disabled { opacity: 0.35; cursor: not-allowed; }
+  canvas {
+    background: #fdfbf6;
+    border-radius: 8px;
+    cursor: crosshair;
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button id="undoBtn">Undo</button>
+  <button id="redoBtn">Redo</button>
+  <button id="resetBtn">Reset</button>
+</div>
+
+<canvas id="canvas" width="700" height="420"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const undoBtn = document.getElementById('undoBtn');
+const redoBtn = document.getElementById('redoBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+let dots = [];      // all dots currently shown
+let redoStack = [];
+
+const colors = ['#d97757', '#4a90a4', '#8a6fb8', '#5aa06c', '#d9a53e', '#c25b5b'];
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#fdfbf6';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (const dot of dots) {
+    ctx.beginPath();
+    ctx.arc(dot.x, dot.y, 8, 0, Math.PI * 2);
+    ctx.fillStyle = dot.color;
+    ctx.fill();
+  }
+  undoBtn.disabled = dots.length === 0;
+  redoBtn.disabled = redoStack.length === 0;
+}
+
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  dots.push({ x, y, color });
+  redoStack = [];
+  draw();
+});
+
+undoBtn.addEventListener('click', () => {
+  if (dots.length === 0) return;
+  redoStack.push(dots.pop());
+  draw();
+});
+
+redoBtn.addEventListener('click', () => {
+  if (redoStack.length === 0) return;
+  dots.push(redoStack.pop());
+  draw();
+});
+
+resetBtn.addEventListener('click', () => {
+  dots = [];
+  redoStack = [];
+  draw();
+});
+
+draw();
+</script>
+
+</body>
+</html>
